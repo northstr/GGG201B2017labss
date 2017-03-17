@@ -1,0 +1,59 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1348\cocoasubrtf170
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 library("edgeR")\
+\
+ERR458948\
+\
+files <- c(\
+"ERR458493.fastq.gz.quant.counts",\
+"ERR458494.fastq.gz.quant.counts",\
+"ERR458495.fastq.gz.quant.counts",\
+"ERR458948.fastq.gz.quant.counts",\
+"ERR458949.fastq.gz.quant.counts",\
+"ERR458950.fastq.gz.quant.counts",\
+"ERR458500.fastq.gz.quant.counts",\
+"ERR458501.fastq.gz.quant.counts",\
+"ERR458502.fastq.gz.quant.counts",\
+"ERR458507.fastq.gz.quant.counts",\
+"ERR458508.fastq.gz.quant.counts",\
+"ERR458509.fastq.gz.quant.counts"\
+)\
+\
+labels=c("w_1_1", "w_1_2", w_1_3", "w_12_1", "w_12_2", "w_12_3", "m_1_1", "m_1_2", "m_1_3", "m_2_1", "m_2_2", "m_2_3")\
+\
+data <- readDGE(files)\
+\
+print(data)\
+\
+###\
+\
+group <- c(rep("wt", 6), rep("mut", 6))\
+\
+dge = DGEList(counts=data, group=group)\
+dge <- estimateCommonDisp(dge)\
+dge <- estimateTagwiseDisp(dge)\
+\
+# make an MA-plot\
+\
+et <- exactTest(dge, pair=c("wt", "mut"))\
+etp <- topTags(et, n=100000)\
+etp$table$logFC = -etp$table$logFC\
+pdf("yeast-edgeR-MA-plot.pdf")\
+plot(\
+  etp$table$logCPM,\
+  etp$table$logFC,\
+  xlim=c(-3, 20), ylim=c(-12, 12), pch=20, cex=.3,\
+  col = ifelse( etp$table$FDR < .2, "red", "black" ) )\
+dev.off()\
+\
+# plot MDS\
+pdf("yeast-edgeR-MDS.pdf")\
+plotMDS(dge, labels=labels)\
+dev.off()\
+\
+# output CSV for 0-6 hr\
+write.csv(etp$table, "yeast-edgeR.csv")}
